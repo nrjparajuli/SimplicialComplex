@@ -1,0 +1,13 @@
+#Inputs for 2-face
+Face('AB', 1, ['A', 'B'])
+Face('BC', 1, ['B', 'C'])
+Face('AC', 1, ['A', 'C'])
+Face('ABC', 2, ['A', 'B', 'C'])
+Face('D', 0, ['D'])
+x = Complex()
+x.addFace('AB', 'BC', 'AC', 'ABC')
+y = SubdividedComplex(x)
+y.addSubFace('BC', 'D')
+y.getFaces()
+
+y.hpoly()
