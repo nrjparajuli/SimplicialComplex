@@ -1,0 +1,37 @@
+#Inputs to form a 2-face
+Face('AB', 1, ['A', 'B'])
+Face('BC', 1, ['B', 'C'])
+Face('AC', 1, ['A', 'C'])
+Face('ABC', 2, ['A', 'B', 'C'])
+
+Face('DE', 1, ['D', 'E'])
+Face('DF', 1, ['D', 'F'])
+Face('EF', 1, ['E', 'F'])
+Face('AF', 1, ['A', 'F'])
+Face('DG', 1, ['D', 'G'])
+Face('BG', 1, ['B', 'G'])
+Face('CG', 1, ['C', 'G'])
+Face('EG', 1, ['E', 'G'])
+
+x = Complex()
+x.addFace('AB')
+x.addFace('AC')
+x.addFace('BC')
+x.addFace('ABC')
+
+x.getFaces()
+
+#Barycentric Subdivision of 2-face
+y = SubdividedComplex(x)
+y.addSubFace('BC', 'F')
+y.addSubFace('ABCF', 'AF')
+y.addSubFace('AF', 'G')
+y.addSubFace('AB', 'D')
+y.addSubFace('ABDFG', 'DG')
+y.addSubFace('BDFG', 'BG')
+y.addSubFace('AC', 'E')
+y.addSubFace('ACEFG', 'EG')
+y.addSubFace('CEFG', 'CG')
+y.getFaces()
+
+y.hpoly()
