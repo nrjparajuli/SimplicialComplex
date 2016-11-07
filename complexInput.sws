@@ -1,0 +1,316 @@
+import copy
+
+#Maybe create vertices in faces and not just add them with the addface bit
+
+global nameDictionary
+nameDictionary = {}
+
+class Face(object):
+    '''Creates a face with a string identifier ('name'), dimension an integer >= 0 called dim, and vert is the list of the 0-faces contained inside of the face.
+    The list vert may consist of 0-faces or their identifiers.
+    
+    Note: The number of vertices need not be dim+1.  Also, when inputting a single vertex, no input for vert is needed.'''
+    def __init__(self, name, dim, vert=[]):
+        self.dim = dim
+        self.vert = vert[:]
+        self.name = name
+        self.subface = []
+        #Add vertex to the points
+        if dim == 0 and vert == []:
+            self.vert.append(self)
+        #Common Errors
+        #if type(dim) != int:
+        #    raise ValueError("Dimension should be an integer.")
+        if dim < -1:
+            raise ValueError("Dimension should be >= 0")
+        if dim > 0 and len(vert) == 0:
+            print "Note: You have no vertices for this face.  Check that this is ok."
+        nameDictionary[self.name] = self
+        #Create vertices as needed
+        for v in self.vert:
+            if isinstance(v, Face)==False:
+                if v in nameDictionary.keys():
+                    self.vert[self.vert.index(v)] = nameDictionary[v]
+                else:
+                    self.vert[self.vert.index(v)] = Face(v,0)
+    def getDim(self):
+        return self.dim
+    def getActualVertices(self):
+        #returns vertices as input
+        return self.vert
+    def getVertices(self):
+        verticesNames = []
+        for i in self.vert:
+            verticesNames.append(str(i))
+        return verticesNames
+    def getName(self):
+        return self.name
+    def division(self, faceAdded):
+        self.subface.append(faceAdded)
+    def getDivision(self):
+        return self.subface
+    def __str__(self):
+        return self.name
+    ##def __class__(self):
+    ##    return Face
+    ##def __deepcopy__(self, memo):
+    ##    return self
+    ##Below is alternate way to solve the problem.  It doesn't make lots of sense to me, but ok.
+    def __getattr__(self, attr):
+        if attr.startswith('__'):
+            raise AttributeError(attr)
+        return self[attr]
+    
+class Complex(object):
+    '''Creates a complex with name given by string name.  An optional faceDictionary may be provided if faces have already been created.  
+    Else, use addFace command.
+    
+    The faceDictionary should have dimensions as keys and lists of faces as entries. The (-1)-dimensional face is automatically added and should not be in your dictionary. '''
+    def __init__(self, faceDictionary = None):
+        #Create and add the Empty Face
+        EmptyFace = Face('EmptyFace', -1, [])
+        if faceDictionary != None:
+            self.faceDictionary = copy.deepcopy(faceDictionary)
+            self.faceDictionary[-1] = []
+            self.faceDictionary[-1].append(EmptyFace)
+        else:
+            self.faceDictionary = {-1:[EmptyFace]}
+        #Builds current name to face dictionary
+        nameDictionary['EmptyFace'] = [EmptyFace]
+        if faceDictionary != None:
+            for i in faceDictionary.keys():
+                for j in range(len(faceDictionary[i])):
+                    nameDictionary[faceDictionary[i][j].getName()] = faceDictionary[i][j]
+    def addFace(self, *facelist):  #can add multiple faces at the same time
+        '''Vertices of a face are automatically added.'''
+##        nameDictionary[face.getName()] = face
+        for face in facelist:
+            if isinstance(face, Face) == False:
+                if face in nameDictionary.keys():
+                    face = nameDictionary[face]
+                else:
+                    raise ValueError('This is not a face.')
+            if face.getDim() in self.faceDictionary.keys():
+                if face in self.faceDictionary[face.getDim()]: 
+                    raise ValueError("This face is already in the complex.")
+                else:
+                    self.faceDictionary[face.getDim()].append(face)
+            else:
+                self.faceDictionary[face.getDim()] = []
+                self.faceDictionary[face.getDim()].append(face)
+            #check if the face vertex is already a face; add it if it is not one.
+            if 0 not in self.faceDictionary.keys():
+                self.faceDictionary[0] = []
+            for v in face.getActualVertices():
+#            #if the face vertex is not a face
+#            if isinstance(v, Face) == False:
+#                #check to see if it is the name of a face that we've seen or not.
+#                if v in nameDictionary.keys():
+#                    #if it is, find it and put it in place for vert.
+#                    face.vert[face.vert.index(v)] = nameDictionary[v]
+#                else:
+#                    #if it is not a face I've seen, make it.
+#                    temp = Face(v, 0)
+#                    self.faceDictionary[0].append(temp)
+###                    nameDictionary[v] = temp
+#                    face.vert[face.vert.index(v)] = nameDictionary[v]
+#            else:
+#                #if it is already a face, then - if it is new - add it.
+                if v not in self.faceDictionary[0]:
+                    self.faceDictionary[0].append(v)
+#                nameDictionary[v.getName()] = face
+    def getFaces(self):
+        tempDictionary = copy.deepcopy(self.faceDictionary)
+        tempNames = {}
+        for i in tempDictionary.keys():
+            tempNames[i] = []
+            for j in range(len(tempDictionary[i])):
+                tempNames[i].append(str(tempDictionary[i][j]))
+        return tempNames
+    def getActualFaces(self):
+        return self.faceDictionary
+    def delFace(self, face):
+        if isinstance(face, Face) == False:
+            if face in nameDictionary.keys():
+                face = nameDictionary[face]
+            else:
+                raise ValueError('This is not a face.')        
+        if face not in self.faceDictionary[face.getDim()]:
+            raise ValueError('This is not a face in the complex.')
+        if len(self.faceDictionary[face.getDim()]) == 1:
+            del self.faceDictionary[face.getDim()]
+        else:
+            self.faceDictionary[face.getDim()].pop(self.faceDictionary[face.getDim()].index(face))
+
+class Simplex(Complex):
+    #Do I actually want this?  Could be added later so maybe not for now... 
+    def createSimplex():
+        pass
+    pass
+
+class SubdividedComplex(Complex):
+    '''Allows you to divide a complex by inputting a subdivision.  Input the original, undivided complex on initialization. Then give the subdivision.'''
+    def __init__(self, undivided):
+        self.undivided = undivided
+        self.faceDictionary = {}
+        for i in undivided.getActualFaces().keys():
+            self.faceDictionary[i] = []
+            for j in range(len(undivided.getActualFaces()[i])):
+                self.faceDictionary[i].append(undivided.getActualFaces()[i][j])
+        self.subdivisionDictionary = {}
+
+    def addSubFace(self, faceToAddTo, faceAdded):
+        #Checks if the inputs are faces we know or not.  If is a string but is the name of a face, replaces the face for the string.
+        
+        if isinstance(faceAdded, Face) == False:
+            if faceAdded in nameDictionary.keys():
+                faceAdded = nameDictionary[faceAdded]
+            else:
+                raise TypeError('The face added is a string and not a face.  Please create this face.')
+        if isinstance(faceToAddTo, Face) == False:
+            if faceToAddTo in nameDictionary.keys():
+                faceToAddTo = nameDictionary[faceToAddTo]
+            else:
+                raise TypeError('The face added to is a string and not a face.  Please create this face.')
+        if faceToAddTo not in self.faceDictionary[faceToAddTo.getDim()]:
+            raise ValueError('The face added to is not in the complex given.  Please fix.')
+        
+        #Add the faceadded to the subdivision dictionary
+        #Might need to change this because I might only need if it is splitting it...
+        #Do I want to keep all the subdivisions?
+        if faceToAddTo not in self.subdivisionDictionary.keys():
+            self.subdivisionDictionary[faceToAddTo] = []
+        self.subdivisionDictionary[faceToAddTo].append(faceAdded)
+        #Add the face added to the faceDictionary
+        if faceAdded.getDim() not in self.faceDictionary.keys():
+            self.faceDictionary[faceAdded.getDim()] = []
+        self.faceDictionary[faceAdded.getDim()].append(faceAdded)
+        #Deal with actually dividing a face
+        if faceAdded.getDim() == faceToAddTo.getDim()-1:
+            if faceAdded.getDim() == 0:
+                for i in faceToAddTo.getActualVertices():
+                    temp = Face(i.getName()+faceAdded.getName(), 1, [i, faceAdded])
+                    self.faceDictionary[1].append(temp)
+                    nameDictionary[temp.getName()] = temp
+                    faceToAddTo.division(temp)
+                #print self.faceDictionary
+                
+                for i in self.faceDictionary.keys():
+                    if i>1:
+                        for j in range(len(self.faceDictionary[i])):
+                            contains = True
+                            for k in faceToAddTo.getVertices():
+                                if k not in self.faceDictionary[i][j].getVertices():
+                                    contains = False
+                            if contains == True and faceAdded.getVertices()[0] not in self.faceDictionary[i][j].getVertices():
+                                temp = self.faceDictionary[i][j].getVertices()
+                                temp.append(faceAdded.getVertices()[0])
+                                temp.sort()
+                                name = ""
+                                for k in temp:
+                                    name = name + k
+                                tempFace = Face(name, i, temp)
+                                self.faceDictionary[i][j] = tempFace
+                                nameDictionary[name] = tempFace
+                                
+            #print 'I need to create the new faces in general...'
+            
+            if faceAdded.getDim() > 0:
+                checkFace = []
+                for i in self.faceDictionary[1]:
+                    temp = i.getVertices()
+                    temp.sort()
+                    checkFace.append(temp)
+                    
+                for i in range(len(checkFace)):
+                    name = ""
+                    for j in checkFace[i]:
+                        name = name + j
+                    checkFace[i] = name
+                    
+                vertices = [] #contains vertices of faceAdded
+                vertex = [] #contains the vertex to add to faceAdded
+                for i in faceAdded.getVertices():
+                    vertices.append(i)
+                for i in faceToAddTo.getVertices():
+                    possibleFace = []
+                    for j in vertices:
+                        temp = i + j
+                        temp = ''.join(sorted(temp))
+                        possibleFace.append(temp)
+                    contains = True
+                    #print possibleFace
+                    for j in possibleFace:
+                        if j not in checkFace:
+                            contains = False
+                            break
+                    if contains == True:
+                        vertex.append(i)
+                        break
+                for i in [1,2]:
+                    if i == 2:
+                        temp = faceToAddTo.getVertices()
+                        temp.remove(vertex[0])
+                        vertex = []
+                        vertices = []
+                        for j in temp:
+                            vertex.append(j)
+                    for j in vertex:
+                        vertices.append(j)  
+                    for j in faceAdded.getVertices():
+                        vertices.append(j)
+                    vertices.sort()
+                    for j in vertices:
+                        while vertices.count(j) > 1:
+                            vertices.remove(j)
+                    name = ""
+                    for j in vertices:
+                        name = name + j
+                    temp = Face(name, faceToAddTo.getDim(), vertices)
+                    self.faceDictionary[faceToAddTo.getDim()].append(temp)
+                    nameDictionary[name] = temp
+                    faceToAddTo.division(temp)
+            
+            self.delFace(faceToAddTo)
+            
+    def hpoly(self):
+        fvec = []
+        x = var('x')
+        fpoly = 0
+        for i in range(len(self.faceDictionary)):
+            fvec.append(len(self.faceDictionary[i-1]))   
+            order = i
+        for i in range(len(fvec)):
+            fpoly = fpoly + fvec[i]*(x-1)^(len(fvec)-1-i)
+        fpoly.expand()
+        hpoly = fpoly(x = 1/x) * x^order
+        return hpoly.expand()
+          
+    def link(self, face):
+        faceList = []
+        if face.lower() == 'emptyface':
+            for i in self.faceDictionary.keys():
+                for j in self.faceDictionary[i]:
+                    faceList.append(j.getName())
+        else:
+            checkFace = list(face)
+            for i in self.faceDictionary.keys():
+                for j in self.faceDictionary[i]:
+                    contains = True
+                    for k in checkFace:
+                        if k not in list(j.getName()):
+                            contains = False
+                    if contains == True:
+                        faceList.append(j.getName())  
+            for i in range(len(faceList)):
+                if faceList[0] == face:
+                    faceList.append('EmptyFace')
+                else:
+                    temp = list(faceList[0])
+                    for j in list(face):
+                        temp.remove(j)
+                    temp.sort()
+                    tempFace = ''.join(temp)
+                    faceList.append(tempFace)
+                faceList.remove(faceList[0])
+        return faceList
