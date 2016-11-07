@@ -1,0 +1,36 @@
+#input to  form a 3-face and subdivided with a 2-face
+Face('AB', 1, ['A', 'B'])
+Face('BC', 1, ['B', 'C'])
+Face('AC', 1, ['A', 'C'])
+Face('AD', 1, ['A', 'D'])
+Face('BD', 1, ['B', 'D'])
+Face('CD', 1, ['C', 'D'])
+Face('ABC', 2, ['A', 'B', 'C'])
+Face('ABD', 2, ['A', 'B', 'D'])
+Face('ACD', 2, ['A', 'C', 'D'])
+Face('BCD', 2, ['B', 'C', 'D'])
+Face('ABCD', 3, ['A', 'B', 'C', 'D'])
+
+Face('XY', 1, ['X', 'Y'])
+Face('YZ', 1, ['Y', 'Z'])
+Face('XZ', 1, ['X', 'Z'])
+Face('XYZ', 2, ['X', 'Y', 'Z'])
+
+x = Complex()
+x.addFace('AB', 'AC', 'BC', 'AD', 'BD', 'CD')
+x.addFace('ABC', 'ABD', 'ACD', 'BCD')
+x.addFace('ABCD')
+
+y = SubdividedComplex(x)
+y.addSubFace('AB', 'X')
+y.addSubFace('AC', 'Y')
+y.addSubFace('AD', 'Z')
+y.addSubFace('ABCXY', 'XY')
+y.addSubFace('ABDXZ', 'XZ')
+y.addSubFace('ACDYZ', 'YZ')
+y.addSubFace('ABCDXYZ', 'XYZ')
+
+y.getFaces()
+
+y.link('B')
+y.hpoly()
