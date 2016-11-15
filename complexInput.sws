@@ -48,7 +48,15 @@ class Face(object):
     def division(self, faceAdded):
         self.subface.append(faceAdded)
     def getDivision(self):
-        return self.subface
+        if self.subface != []:
+            return self.subface
+        else:
+            for i in nameDictionary.keys():
+                if set(list(self.name)).issubset(set(list(i))) and self.getDim() == nameDictionary[i].getDim() and self.name != i and nameDictionary[i].subface != [] and self not in nameDictionary[i].subface:
+                    print i
+                    self.subface = nameDictionary[i].subface
+                    break
+            return self.subface
     def __str__(self):
         return self.name
     ##def __class__(self):
@@ -205,22 +213,17 @@ class SubdividedComplex(Complex):
                             if contains == True and faceAdded.getVertices()[0] not in self.faceDictionary[i][j].getVertices():
                                 temp = self.faceDictionary[i][j].getVertices()
                                 temp.append(faceAdded.getVertices()[0])
-                                temp.sort()
-                                name = ""
-                                for k in temp:
-                                    name = name + k
+                                name = ''.join(sorted(temp))
                                 tempFace = Face(name, i, temp)
                                 self.faceDictionary[i][j] = tempFace
                                 nameDictionary[name] = tempFace
-                                
-            #print 'I need to create the new faces in general...'
             
             if faceAdded.getDim() > 0:
                 checkFace = []
                 for i in self.faceDictionary[1]:
                     temp = i.getVertices()
-                    temp.sort()
-                    checkFace.append(temp)
+                    #temp.sort()
+                    checkFace.append(sorted(temp))
                     
                 for i in range(len(checkFace)):
                     name = ""
@@ -263,9 +266,7 @@ class SubdividedComplex(Complex):
                     for j in vertices:
                         while vertices.count(j) > 1:
                             vertices.remove(j)
-                    name = ""
-                    for j in vertices:
-                        name = name + j
+                    name = ''.join(vertices)
                     temp = Face(name, faceToAddTo.getDim(), vertices)
                     self.faceDictionary[faceToAddTo.getDim()].append(temp)
                     nameDictionary[name] = temp
@@ -275,42 +276,77 @@ class SubdividedComplex(Complex):
             
     def hpoly(self):
         fvec = []
-        x = var('x')
-        fpoly = 0
         for i in range(len(self.faceDictionary)):
-            fvec.append(len(self.faceDictionary[i-1]))   
-            order = i
+            fvec.append(len(self.faceDictionary[i-1])) 
+        return self.__hpolynomial(fvec)
+        
+    def __hpolynomial(self, fvec):
+        x = var('x')
+        fpoly = 0 
+        order = len(fvec)-1
         for i in range(len(fvec)):
             fpoly = fpoly + fvec[i]*(x-1)^(len(fvec)-1-i)
         fpoly.expand()
         hpoly = fpoly(x = 1/x) * x^order
         return hpoly.expand()
           
-    def link(self, face):
+    def link(self, face, complex):
         faceList = []
+        complexDict = self.__formComplex(complex)
         if face.lower() == 'emptyface':
-            for i in self.faceDictionary.keys():
-                for j in self.faceDictionary[i]:
+            for i in complexDict.keys():
+                for j in complexDict[i]:
                     faceList.append(j.getName())
         else:
             checkFace = list(face)
-            for i in self.faceDictionary.keys():
-                for j in self.faceDictionary[i]:
-                    contains = True
-                    for k in checkFace:
-                        if k not in list(j.getName()):
-                            contains = False
-                    if contains == True:
-                        faceList.append(j.getName())  
+            for i in range(len(complexDict)-1):
+                for j in complexDict[i]:
+                    if set(face).issubset(set(j.getName())):
+                        faceList.append(j)  
             for i in range(len(faceList)):
-                if faceList[0] == face:
+                if faceList[0].getName() == face:
                     faceList.append('EmptyFace')
                 else:
-                    temp = list(faceList[0])
+                    temp = list(faceList[0].getName())
                     for j in list(face):
                         temp.remove(j)
                     temp.sort()
                     tempFace = ''.join(temp)
-                    faceList.append(tempFace)
+                    for i in complexDict[faceList[0].getDim()-1]:
+                        if i.getName() == tempFace:
+                            faceList.append(tempFace)
                 faceList.remove(faceList[0])
         return faceList
+    
+    def __formComplex(self, complex):
+        complexDict = {-1:[nameDictionary['EmptyFace']]}
+        for i in self.faceDictionary.keys():
+            for j in self.faceDictionary[i]:
+                if set(j.getName()).issubset(set(complex)):
+                    if i not in complexDict.keys():
+                        complexDict[i] = []
+                    complexDict[i].append(j)
+        return complexDict
+
+    def localh(self, *recursor):
+        #local = 0
+        #x = var('x')
+        #if len(recursor) == 0:
+        #    local = self.hpoly() - 1
+        #    for i in range(1, len(self.undivided.getActualFaces())-1):
+        #        for j in self.undivided.getActualFaces()[i-1]:
+        #            if j not in self.getActualFaces()[i-1]:
+        #                local = local - self.localh(j)
+        #else:
+        print self.undivided.faceDictionary[2][0].getDivision()
+        self.__subComplex(self.undivided.faceDictionary[2][0])    
+    
+    def __subComplex(self, mainFace):
+        mainFaceDict = {-1:['EmptyFace']}
+        for i in range(mainFace.getDim()):
+            mainFaceDict[i] = []
+            for j in self.faceDictionary[i]:
+                for k in mainFace.getDivision():
+                    if set(list(j.getName())).issubset(set(list(k.getName()))) and j not in mainFaceDict[i]:
+                        mainFaceDict[i].append(j)
+        print mainFaceDict
