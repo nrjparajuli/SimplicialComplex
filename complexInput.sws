@@ -59,11 +59,6 @@ class Face(object):
             return self.subface
     def __str__(self):
         return self.name
-    ##def __class__(self):
-    ##    return Face
-    ##def __deepcopy__(self, memo):
-    ##    return self
-    ##Below is alternate way to solve the problem.  It doesn't make lots of sense to me, but ok.
     def __getattr__(self, attr):
         if attr.startswith('__'):
             raise AttributeError(attr)
@@ -91,7 +86,6 @@ class Complex(object):
                     nameDictionary[faceDictionary[i][j].getName()] = faceDictionary[i][j]
     def addFace(self, *facelist):  #can add multiple faces at the same time
         '''Vertices of a face are automatically added.'''
-##        nameDictionary[face.getName()] = face
         for face in facelist:
             if isinstance(face, Face) == False:
                 if face in nameDictionary.keys():
@@ -110,23 +104,8 @@ class Complex(object):
             if 0 not in self.faceDictionary.keys():
                 self.faceDictionary[0] = []
             for v in face.getActualVertices():
-#            #if the face vertex is not a face
-#            if isinstance(v, Face) == False:
-#                #check to see if it is the name of a face that we've seen or not.
-#                if v in nameDictionary.keys():
-#                    #if it is, find it and put it in place for vert.
-#                    face.vert[face.vert.index(v)] = nameDictionary[v]
-#                else:
-#                    #if it is not a face I've seen, make it.
-#                    temp = Face(v, 0)
-#                    self.faceDictionary[0].append(temp)
-###                    nameDictionary[v] = temp
-#                    face.vert[face.vert.index(v)] = nameDictionary[v]
-#            else:
-#                #if it is already a face, then - if it is new - add it.
                 if v not in self.faceDictionary[0]:
                     self.faceDictionary[0].append(v)
-#                nameDictionary[v.getName()] = face
     def getFaces(self):
         tempDictionary = copy.deepcopy(self.faceDictionary)
         tempNames = {}
@@ -201,7 +180,6 @@ class SubdividedComplex(Complex):
                     self.faceDictionary[1].append(temp)
                     nameDictionary[temp.getName()] = temp
                     faceToAddTo.division(temp)
-                #print self.faceDictionary
                 
                 for i in self.faceDictionary.keys():
                     if i>1:
@@ -289,7 +267,7 @@ class SubdividedComplex(Complex):
         fpoly.expand()
         hpoly = fpoly(x = 1/x) * x^order
         return hpoly.expand()
-          
+
     def link(self, face, complex):
         faceList = []
         complexDict = self.__formComplex(complex)
