@@ -129,11 +129,20 @@ class Complex(object):
         else:
             self.faceDictionary[face.getDim()].pop(self.faceDictionary[face.getDim()].index(face))
 
-class Simplex(Complex):
-    #Do I actually want this?  Could be added later so maybe not for now... 
-    def createSimplex():
-        pass
-    pass
+    def link(self, face):
+    	if face.lower() == 'emptyface':
+    		return self.getFaces()
+    	faceSet = set(face)
+    	linkList = []
+    	for i in self.faceDictionary.keys():
+    		for j in self.faceDictionary[i]:
+    			if faceSet.issubset(set(j.getName())) and j.getName() != 'EmptyFace':
+    				temp = list(set(j.getName()).difference(faceSet))
+                                if not temp:
+                                    linkList.append('EmptyFace')
+                                else:    
+    				    linkList.append(''.join(sorted(temp)))
+    	return linkList
 
 class SubdividedComplex(Complex):
     '''Allows you to divide a complex by inputting a subdivision.  Input the original, undivided complex on initialization. Then give the subdivision.'''
@@ -267,44 +276,6 @@ class SubdividedComplex(Complex):
         fpoly.expand()
         hpoly = fpoly(x = 1/x) * x^order
         return hpoly.expand()
-
-    def link(self, face, complex):
-        faceList = []
-        complexDict = self.__formComplex(complex)
-        if face.lower() == 'emptyface':
-            for i in complexDict.keys():
-                for j in complexDict[i]:
-                    faceList.append(j.getName())
-        else:
-            checkFace = list(face)
-            for i in range(len(complexDict)-1):
-                for j in complexDict[i]:
-                    if set(face).issubset(set(j.getName())):
-                        faceList.append(j)  
-            for i in range(len(faceList)):
-                if faceList[0].getName() == face:
-                    faceList.append('EmptyFace')
-                else:
-                    temp = list(faceList[0].getName())
-                    for j in list(face):
-                        temp.remove(j)
-                    temp.sort()
-                    tempFace = ''.join(temp)
-                    for i in complexDict[faceList[0].getDim()-1]:
-                        if i.getName() == tempFace:
-                            faceList.append(tempFace)
-                faceList.remove(faceList[0])
-        return faceList
-    
-    def __formComplex(self, complex):
-        complexDict = {-1:[nameDictionary['EmptyFace']]}
-        for i in self.faceDictionary.keys():
-            for j in self.faceDictionary[i]:
-                if set(j.getName()).issubset(set(complex)):
-                    if i not in complexDict.keys():
-                        complexDict[i] = []
-                    complexDict[i].append(j)
-        return complexDict
 
     def localh(self, *recursor):
         #local = 0
