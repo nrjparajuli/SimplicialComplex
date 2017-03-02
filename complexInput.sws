@@ -130,19 +130,19 @@ class Complex(object):
             self.faceDictionary[face.getDim()].pop(self.faceDictionary[face.getDim()].index(face))
 
     def link(self, face):
-    	if face.lower() == 'emptyface':
-    		return self.getFaces()
-    	faceSet = set(face)
-    	linkList = []
-    	for i in self.faceDictionary.keys():
-    		for j in self.faceDictionary[i]:
-    			if faceSet.issubset(set(j.getName())) and j.getName() != 'EmptyFace':
-    				temp = list(set(j.getName()).difference(faceSet))
-                                if not temp:
-                                    linkList.append('EmptyFace')
-                                else:    
-    				    linkList.append(''.join(sorted(temp)))
-    	return linkList
+        if face.lower() == 'emptyface':
+            return self.getFaces()
+        faceSet = set(face)
+        linkList = []
+        for i in self.faceDictionary.keys():
+            for j in self.faceDictionary[i]:
+                if faceSet.issubset(set(j.getName())) and j.getName() != 'EmptyFace':
+                    temp = list(set(j.getName()).difference(faceSet))
+                    if not temp:
+                        linkList.append('EmptyFace')
+                    else:    
+                        linkList.append(''.join(sorted(temp)))
+        return linkList
 
 class SubdividedComplex(Complex):
     '''Allows you to divide a complex by inputting a subdivision.  Input the original, undivided complex on initialization. Then give the subdivision.'''
