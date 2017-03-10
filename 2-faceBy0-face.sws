@@ -11,3 +11,5 @@ y.addSubFace('BC', 'D')
 y.getFaces()
 
 y.hpoly()
+
+y.localh('ABC')

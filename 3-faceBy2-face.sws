@@ -34,3 +34,5 @@ y.getFaces()
 
 y.link('B')
 y.hpoly()
+
+y.localh('ABCD')
