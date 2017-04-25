@@ -128,8 +128,8 @@ class Complex(object):
         tempNames = {}
         for i in tempDictionary.keys():
             tempNames[i] = []
-            for j in range(len(tempDictionary[i])):
-                tempNames[i].append(str(tempDictionary[i][j]))
+            for j in tempDictionary[i]:
+                tempNames[i].append(j.getName())
         return tempNames
     def getActualFaces(self):
         return self.faceDictionary
